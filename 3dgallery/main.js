@@ -3,7 +3,6 @@ let scene, camera, renderer, controls;
 let ball, sky, sun;
 let platforms = [];
 let movingPlatforms = [];
-let obstacles = [];
 let portal;
 let platformLights = [];
 let collectibles = [];
@@ -17,6 +16,7 @@ let currentColor = 0x00ffff;
 let lives = 3;
 let runCounter = 0;
 let score = 0;
+let jumpsLeft = 3; // New variable for triple jump
 
 // HUD Elements
 let runCounterElement = document.getElementById('run-counter');
@@ -125,12 +125,10 @@ function createPlatforms() {
   platforms.forEach(platform => scene.remove(platform.mesh));
   platformLights.forEach(light => scene.remove(light));
   movingPlatforms.forEach(platform => scene.remove(platform.mesh));
-  obstacles.forEach(obstacle => scene.remove(obstacle));
   collectibles.forEach(collectible => scene.remove(collectible));
   platforms = [];
   platformLights = [];
   movingPlatforms = [];
-  obstacles = [];
   collectibles = [];
 
   const neonMaterial = new THREE.MeshStandardMaterial({
@@ -195,6 +193,7 @@ function createPlatforms() {
         amplitude: amplitude,
         speed: speed,
         phase: Math.random() * Math.PI * 2,
+        direction: new THREE.Vector3(1, 0, 0), // Movement direction
       });
     } else {
       platforms.push({ mesh: platformMesh });
@@ -207,11 +206,6 @@ function createPlatforms() {
     platformLight.position.set(position.x, position.y + 1, position.z);
     platformLights.push(platformLight);
     scene.add(platformLight);
-
-    // Add obstacles on some platforms
-    if (Math.random() < 0.3 && !isMoving) {
-      createObstacle(platformMesh.position);
-    }
 
     // Add collectibles on some platforms
     if (Math.random() < 0.3) {
@@ -226,17 +220,6 @@ function createPlatforms() {
     platforms[0].mesh.position.z
   );
   controls.target.copy(ball.position); // Update camera target to the ball's new position
-}
-
-// Create Moving Obstacles
-function createObstacle(position) {
-  const obstacleGeometry = new THREE.BoxGeometry(1, 1, 0.2);
-  const obstacleMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-  const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
-  obstacle.position.set(position.x, position.y + 1, position.z);
-  obstacle.castShadow = true;
-  scene.add(obstacle);
-  obstacles.push(obstacle);
 }
 
 // Create Collectibles
@@ -341,11 +324,6 @@ function updateBall() {
     platform.mesh.position.x = platform.initialPosition.x + Math.sin(platform.phase) * platform.amplitude;
   });
 
-  // Rotate obstacles
-  obstacles.forEach(obstacle => {
-    obstacle.rotation.y += 0.05;
-  });
-
   // Update collectibles
   collectibles.forEach(collectible => {
     collectible.rotation.y += 0.05;
@@ -382,6 +360,8 @@ function updateBall() {
 
   // Collision detection with platforms
   let onPlatform = false;
+  let platformVelocity = new THREE.Vector3(0, 0, 0);
+
   platforms.concat(movingPlatforms).forEach(platformObj => {
     const platform = platformObj.mesh;
     // Create bounding boxes for the ball and platform
@@ -393,20 +373,22 @@ function updateBall() {
         ball.position.y = platformBox.max.y + 0.5; // Adjust for ball radius
         velocity.y = 0;
         onPlatform = true;
+        jumpsLeft = 3; // Reset jumps when touching a platform
+
+        // If the platform is moving, get its velocity
+        if (platformObj.initialPosition) {
+          const platformOldPosition = platformObj.previousPosition || platformObj.initialPosition;
+          platformVelocity = platform.position.clone().sub(platformOldPosition);
+          platformObj.previousPosition = platform.position.clone();
+        }
       }
     }
   });
 
-  // Collision detection with obstacles
-  obstacles.forEach(obstacle => {
-    const ballBox = new THREE.Box3().setFromObject(ball);
-    const obstacleBox = new THREE.Box3().setFromObject(obstacle);
-
-    if (ballBox.intersectsBox(obstacleBox)) {
-      // Lose a life when hitting an obstacle
-      gameOver();
-    }
-  });
+  // If on a moving platform, adjust ball's position based on platform's movement
+  if (onPlatform && platformVelocity.lengthSq() > 0) {
+    ball.position.add(platformVelocity);
+  }
 
   // Collectibles collection
   collectibles = collectibles.filter(collectible => {
@@ -475,9 +457,13 @@ function handleKeyboardInput(forward, right, moveSpeed) {
     velocity.z += right.z * moveSpeed;
   }
   if (keys[' ']) {
-    if (velocity.y === 0) {
+    if (jumpsLeft > 0 && !keys['alreadyJumped']) {
       velocity.y = jumpSpeed;
+      jumpsLeft--;
+      keys['alreadyJumped'] = true; // Prevent continuous jumping while holding the key
     }
+  } else {
+    keys['alreadyJumped'] = false;
   }
 }
 
@@ -495,8 +481,6 @@ function handleMobileInput(forward, right, moveSpeed) {
     velocity.z += (forward.z * dirY + right.z * dirX) * moveSpeed * force;
   }
 }
-
-let joystickData = null;
 
 // Initialize Mobile Controls
 function createMobileControls() {
@@ -528,8 +512,9 @@ function createMobileControls() {
   document.body.appendChild(jumpButton);
 
   jumpButton.addEventListener('touchstart', () => {
-    if (velocity.y === 0) {
+    if (jumpsLeft > 0) {
       velocity.y = jumpSpeed;
+      jumpsLeft--;
     }
   });
 }
@@ -566,6 +551,7 @@ function gameOver() {
       platforms[0].mesh.position.z
     );
     velocity = { x: 0, y: 0, z: 0 };
+    jumpsLeft = 3; // Reset jumps
   }
 }
 
@@ -579,6 +565,7 @@ function restartGame() {
     platforms[0].mesh.position.z
   );
   velocity = { x: 0, y: 0, z: 0 };
+  jumpsLeft = 3; // Reset jumps
   controls.target.copy(ball.position); // Reset camera target to ball's new position
 }
 
