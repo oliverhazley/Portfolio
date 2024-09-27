@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+body{
+    margin :0;
+    background-color: #210002;
+    font-family: Poppins;
+    font-size: 15px;
+}
+.banner{
+    height: 110vh;
+    position: relative;
+    overflow: hidden;
+}
+.banner .bg{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: 0.1s;
+}
+.banner .bg-1{
+    background-image: url('img/0.png');
+}
+.banner .bg-2{
+    background-image: url('img/1.png');
+}
+.banner .bg-3{
+    background-image: url('img/2.png');
+}
+.banner .bg-4{
+    background-image: url('img/3.png');
+}
+.banner .bg-5{
+    background-image: url('img/4.png');
+}
+.banner .bg-6{
+    background-image: url('img/.png');
+}
+.banner .bg-7{
+    background-image: url('img/6.png');
+}
+.banner .bg-8{
+    background-image: url('img/7.png');
+}
+.banner .bg-9{
+    background-image: url('img/8.png');
+}
+.banner  h1{
+    position: absolute;
+    top: -25vh;
+    padding-top:20vh;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 5rem;
+    font-family: 'Pacifico', cursive;
+    color: #fff;
+}
+.intro{
+    min-height: 50vh;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.intro img{
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+}
+.intro p{
+    width: 700px;
+    max-width: 100%;
+    text-align: center;
+    font-size: 1rem;
+}
+.intro button{
+    margin-top:10px;
+    margin-botom: 10px;
+    background-color: #5d1718;
+    padding: 10px 50px;
+    border: 3px solid #ffffff;
+    border-radius: 5px;
+    color: #fff;
+    font-family: Poppins;
+    font-weight: 500;
+    font-size:1rem;
+    cursor:pointer;
+    box-shadow: 0 0 10px #ff0000;
+}
+.intro button:hover {
+    background-color: rgba(238, 86, 86, 0.78); /* Slightly darker on hover */
+    box-shadow: 0 0 10px #ff0000;
+}
+.animation-show{
+    transform: translateY(50px);
+    opacity: 0;
+    transition: 0.7s;
+}
+.active .animation-show{
+    transform: translateY(0);
+    opacity: 1;
+}
+.animation-show:nth-child(2){
+    transition-delay: 0.3s;
+}
+.animation-show:nth-child(3){
+    transition-delay: 0.6s;
+}
+.animation-show:nth-child(4){
+    transition-delay: 0.9s;
+}
+.library {
+    margin-top: 50px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px; /* Add some space between the videos */
+    text-align: center;
+    color: #fff;
+    margin-left:10px;
+    margin-right:10px;
+}
+
+.library iframe {
+    width: 100%; /* Make the video take the full width of its container */
+    height: auto; /* Maintain aspect ratio */
+    aspect-ratio: 16 / 9; /* Ensure the videos keep their 16:9 aspect ratio */
+}
+@media screen and (max-width: 768px){
+    .banner h1{
+        font-size: 2rem;
+        top: -5vh;
+    }
+    .library{
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .library img{
+        height: 300px;
+    }
+}
